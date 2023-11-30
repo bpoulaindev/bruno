@@ -70,9 +70,17 @@ const setAuthHeaders = (axiosRequest, request, collectionRoot) => {
   return axiosRequest;
 };
 
+const protocolRegex = /([a-zA-Z]{2,20}:\/\/)(.*)/;
+
 const prepareRequest = (request, collectionRoot) => {
   const headers = {};
   let contentTypeDefined = false;
+  let url = request.url;
+
+  // Temporarily disabling this as this fails when url has vars Ex: {{baseUrl}}/api
+  // if (!protocolRegex.test(url)) {
+  //   url = `http://${url}`;
+  // }
 
   // collection headers
   each(get(collectionRoot, 'request.headers', []), (h) => {
@@ -94,9 +102,10 @@ const prepareRequest = (request, collectionRoot) => {
   });
 
   let axiosRequest = {
+    mode: request.body.mode,
     method: request.method,
-    url: request.url,
-    headers: headers,
+    url,
+    headers,
     responseType: 'arraybuffer'
   };
 
@@ -163,7 +172,8 @@ const prepareRequest = (request, collectionRoot) => {
   if (request.body.mode === 'graphql') {
     const graphqlQuery = {
       query: get(request, 'body.graphql.query'),
-      variables: JSON.parse(decomment(get(request, 'body.graphql.variables') || '{}'))
+      // https://github.com/usebruno/bruno/issues/884 - we must only parse the variables after the variable interpolation
+      variables: decomment(get(request, 'body.graphql.variables') || '{}')
     };
     if (!contentTypeDefined) {
       axiosRequest.headers['content-type'] = 'application/json';
