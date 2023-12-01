@@ -1,4 +1,4 @@
-import TitleBar from './TitleBar';
+import { TitleBar } from './TitleBar/title_bar';
 import Collections from './Collections';
 import StyledWrapper from './StyledWrapper';
 import GitHubButton from 'react-github-btn';

@@ -6,6 +6,8 @@ import { HotkeysProvider } from '@providers/Hotkeys';
 
 import ReduxStore from '@providers/ReduxStore';
 import ThemeProvider from '@providers/Theme/index';
+// import { Inter as FontSans } from "@next/font/google"
+
 import ErrorBoundary from './ErrorBoundary';
 
 import '../styles/globals.css';
@@ -13,6 +15,11 @@ import 'codemirror/lib/codemirror.css';
 import 'graphiql/graphiql.min.css';
 import 'react-tooltip/dist/react-tooltip.css';
 import '@usebruno/graphql-docs/dist/esm/index.css';
+
+/* export const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+}) */
 
 function SafeHydrate({ children }) {
   return <div suppressHydrationWarning>{typeof window === 'undefined' ? null : children}</div>;
