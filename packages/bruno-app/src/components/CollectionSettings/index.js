@@ -16,6 +16,7 @@ import Docs from './Docs';
 import Presets from './Presets';
 import Info from './Info';
 import StyledWrapper from './StyledWrapper';
+import Secrets from 'components/CollectionSettings/Secrets';
 
 const CollectionSettings = ({ collection }) => {
   const dispatch = useDispatch();
@@ -107,6 +108,9 @@ const CollectionSettings = ({ collection }) => {
       case 'info': {
         return <Info collection={collection} />;
       }
+      case 'secrets': {
+        return <Secrets />;
+      }
     }
   };
 
@@ -115,37 +119,57 @@ const CollectionSettings = ({ collection }) => {
       active: tabName === tab
     });
   };
-
+  // put all the tabs in a variable
+  const tabs = [
+    {
+      key: 'headers',
+      name: 'Headers'
+    },
+    {
+      key: 'auth',
+      name: 'Auth'
+    },
+    {
+      key: 'script',
+      name: 'Script'
+    },
+    {
+      key: 'tests',
+      name: 'Tests'
+    },
+    {
+      key: 'presets',
+      name: 'Presets'
+    },
+    {
+      key: 'proxy',
+      name: 'Proxy'
+    },
+    {
+      key: 'clientCert',
+      name: 'Client Certificates'
+    },
+    {
+      key: 'docs',
+      name: 'Docs'
+    },
+    {
+      key: 'info',
+      name: 'Info'
+    },
+    {
+      key: 'secrets',
+      name: 'Secrets'
+    }
+  ];
   return (
     <StyledWrapper className="flex flex-col h-full relative px-4 py-4">
       <div className="flex flex-wrap items-center tabs" role="tablist">
-        <div className={getTabClassname('headers')} role="tab" onClick={() => setTab('headers')}>
-          Headers
-        </div>
-        <div className={getTabClassname('auth')} role="tab" onClick={() => setTab('auth')}>
-          Auth
-        </div>
-        <div className={getTabClassname('script')} role="tab" onClick={() => setTab('script')}>
-          Script
-        </div>
-        <div className={getTabClassname('tests')} role="tab" onClick={() => setTab('tests')}>
-          Tests
-        </div>
-        <div className={getTabClassname('presets')} role="tab" onClick={() => setTab('presets')}>
-          Presets
-        </div>
-        <div className={getTabClassname('proxy')} role="tab" onClick={() => setTab('proxy')}>
-          Proxy
-        </div>
-        <div className={getTabClassname('clientCert')} role="tab" onClick={() => setTab('clientCert')}>
-          Client Certificates
-        </div>
-        <div className={getTabClassname('docs')} role="tab" onClick={() => setTab('docs')}>
-          Docs
-        </div>
-        <div className={getTabClassname('info')} role="tab" onClick={() => setTab('info')}>
-          Info
-        </div>
+        {tabs.map((tab) => (
+          <div key={tab.key} className={getTabClassname(tab.key)} role="tab" onClick={() => setTab(tab.key)}>
+            {tab.name}
+          </div>
+        ))}
       </div>
       <section className={`flex ${['auth', 'script', 'docs', 'clientCert'].includes(tab) ? '' : 'mt-4'}`}>
         {getTabPanel(tab)}
