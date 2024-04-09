@@ -419,6 +419,21 @@ const registerNetworkIpc = (mainWindow) => {
     return scriptResult;
   };
 
+  // handler for simple http request
+  ipcMain.handle('send-simple-http-request', async (event, { url, method, headers, body }) => {
+    return new Promise((resolve, reject) => {
+      const axiosInstance = makeAxiosInstance();
+      axiosInstance({
+        url,
+        method: method || 'GET',
+        headers,
+        data: body
+      })
+        .then((response) => resolve(response.data))
+        .catch((err) => reject(err));
+    });
+  });
+
   // handler for sending http request
   ipcMain.handle('send-http-request', async (event, item, collection, environment, collectionVariables) => {
     const collectionUid = collection.uid;

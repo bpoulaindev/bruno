@@ -22,6 +22,13 @@ export const sendNetworkRequest = async (item, collection, environment, collecti
   });
 };
 
+export const sendSimpleHttpRequest = async ({ url, method, headers, body }) => {
+  return new Promise((resolve, reject) => {
+    const { ipcRenderer } = window;
+    ipcRenderer.invoke('send-simple-http-request', { url, method, headers, body }).then(resolve).catch(reject);
+  });
+};
+
 const sendHttpRequest = async (item, collection, environment, collectionVariables) => {
   return new Promise((resolve, reject) => {
     const { ipcRenderer } = window;
