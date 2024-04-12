@@ -429,8 +429,20 @@ const registerNetworkIpc = (mainWindow) => {
         headers,
         data: body
       })
-        .then((response) => resolve(response.data))
-        .catch((err) => reject(err));
+        .then((response) => {
+          resolve(response?.data || response);
+        })
+        .catch((err) => {
+          if (err.response) {
+            resolve({
+              code: err.code,
+              status: err.response.status,
+              statusText: err.response.statusText,
+              data: err.response.data
+            });
+          }
+          reject(err);
+        });
     });
   });
 

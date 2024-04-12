@@ -4,21 +4,44 @@ import { VaultServerWidget } from 'components/Secrets/Widget/VaultServer/vault-s
 
 const withCommonProps =
   (WidgetComponent) =>
-  ({ className, config, setConfig, platformConfig, setPlatformConfig }) =>
-    <WidgetComponent className={className} {...config} {...setConfig} {...platformConfig} {...setPlatformConfig} />;
+  ({ className, config, setConfig, platformConfig, setPlatformConfig, collection }) =>
+    (
+      <WidgetComponent
+        className={className}
+        config={config}
+        setConfig={setConfig}
+        platformConfig={platformConfig}
+        setPlatformConfig={setPlatformConfig}
+        collection={collection}
+      />
+    );
 
-const RenderWidget = ({ type, className, config, setConfig, platformConfig, setPlatformConfig }) => {
+const RenderWidget = ({ type, className, config, setConfig, platformConfig, setPlatformConfig, collection }) => {
   switch (type) {
     case 'Vault Cloud':
-      return withCommonProps(VaultCloudWidget)({ className, config, setConfig, platformConfig, setPlatformConfig });
+      return withCommonProps(VaultCloudWidget)({
+        className,
+        config,
+        setConfig,
+        platformConfig,
+        setPlatformConfig,
+        collection
+      });
     case 'Vault Server':
-      return withCommonProps(VaultServerWidget)({ className, config, setConfig, platformConfig, setPlatformConfig });
+      return withCommonProps(VaultServerWidget)({
+        className,
+        config,
+        setConfig,
+        platformConfig,
+        setPlatformConfig,
+        collection
+      });
     default:
       return <div>Unknown widget type</div>;
   }
 };
 
-export const SecretsWidget = ({ className, type }) => {
+export const SecretsWidget = ({ className, type, collection }) => {
   // contains secretConfig and sharedConfig
   const [config, setConfig] = useState({
     secretConfig: {},
@@ -28,5 +51,7 @@ export const SecretsWidget = ({ className, type }) => {
       getSecret: () => {}
     }
   });
-  return <RenderWidget type={type} className={className} config={config} setConfig={setConfig} />;
+  return (
+    <RenderWidget type={type} className={className} config={config} setConfig={setConfig} collection={collection} />
+  );
 };

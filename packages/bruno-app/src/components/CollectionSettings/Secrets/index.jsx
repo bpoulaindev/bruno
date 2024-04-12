@@ -58,11 +58,7 @@ const VaultNode = ({ key, node, setNode }) => {
   );
 };
 
-export default function Secrets() {
-  const [apiToken, setApiToken] = useState(
-    'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1VRTNPRFE0UkVGRU1ESXhRemczT0VFNU5UazROalJHT0RnME5qSTRNRGc1TjBNeVJqVXlSUSJ9.eyJpc3MiOiJodHRwczovL2F1dGguaGFzaGljb3JwLmNvbS8iLCJzdWIiOiJWc3lxMGRPcDlOa2k4UUNvaERqN3lLdjVRNlBMVTBlREBjbGllbnRzIiwiYXVkIjoiaHR0cHM6Ly9hcGkuaGFzaGljb3JwLmNsb3VkIiwiaWF0IjoxNzExMzcwMjk1LCJleHAiOjE3MTEzNzM4OTUsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyIsImF6cCI6IlZzeXEwZE9wOU5raThRQ29oRGo3eUt2NVE2UExVMGVEIn0.liZnZ4cZs7d0C9hMHR_Ig9bp5NAFQCO8MlOPlO1VpW3bBRCbvu_vEHqupxtP6dyeZfAsn9Jhz6utEuCEVeNYzuiiCTAsjJY9Xx2WtcM25bJ5UaFW-5ynXEy2L2Yi1BB3k71HWp8jjNQyvwSpA45LRbrbKqfXEuXq50_8YLKvxXGGGHgDQ-0FbjrsAoalPpwOE68QpmSypzCpVmpvN9cijHQegcqiTLhzzPi6HeG1AshnN5W1A2LH8vR4s-sZeY04OsxzzS0-7aL36xqji-mNpNcz9WTyKYpegaOH9bOGMceg9yHW21nbANJxk4hCqOmyU2NsY1VW0GfffjDuQ3iuYA'
-  );
-  const [hideToken, setHideToken] = useState(true);
+export default function Secrets({ collection }) {
   const [vaultData, setVaultData] = useState();
   const [nodes, setNodes] = useState([
     {
@@ -146,8 +142,14 @@ export default function Secrets() {
           New Node
         </Button>
       </div>
-      {isOpen && <SecretsEditor onClose={() => setIsOpen(false)} onConfirm={(data) => console.log(data)} />}
-      <div className="flex flex-col justify-end grow min-w-[300px] my-1">
+      {isOpen && (
+        <SecretsEditor
+          onClose={() => setIsOpen(false)}
+          onConfirm={(data) => console.log(data)}
+          collection={collection}
+        />
+      )}
+      {/* <div className="flex flex-col justify-end grow min-w-[300px] my-1">
         <div className="flex items-center">
           <label htmlFor="apiToken" className=" block text-xs font-medium leading-6 text-zinc-900 dark:text-zinc-50">
             API Token
@@ -189,7 +191,7 @@ export default function Secrets() {
           </Button>
         </div>
         <span className="m-4">or</span>
-      </div>
+      </div> */}
     </div>
   );
 }

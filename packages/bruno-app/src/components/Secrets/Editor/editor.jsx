@@ -28,7 +28,7 @@ const Options = ({ options, setSelectedPlatform, dropdownRef }) => {
   );
 };
 
-export const SecretsEditor = ({ onConfirm, onClose }) => {
+export const SecretsEditor = ({ onConfirm, onClose, collection }) => {
   const dropdownTippyRef = useRef();
   const onDropdownCreate = (ref) => (dropdownTippyRef.current = ref);
   const platforms = ['Vault Cloud', 'Vault Server'];
@@ -56,7 +56,7 @@ export const SecretsEditor = ({ onConfirm, onClose }) => {
           <Options options={platforms} setSelectedPlatform={setSelectedPlatform} dropdownRef={dropdownTippyRef} />
         </Dropdown>
       </div>
-      {selectedPlatform && <SecretsWidget type={selectedPlatform} className="mt-2" />}
+      {selectedPlatform && <SecretsWidget type={selectedPlatform} collection={collection} className="mt-2" />}
     </Modal>
   );
 };

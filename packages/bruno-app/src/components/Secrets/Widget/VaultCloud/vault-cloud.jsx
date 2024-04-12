@@ -2,11 +2,28 @@ import { SecretField } from 'components/Secrets/Editor/field';
 import { useMemo, useState } from 'react';
 import { sendSimpleHttpRequest } from 'utils/network';
 import Spinner from 'components/Spinner';
-import { IconLoader, IconLoader2 } from '@tabler/icons';
+import { IconCaretDown, IconCaretRight, IconLoader, IconLoader2 } from '@tabler/icons';
 
-export const VaultCloudWidget = ({ className, config, setConfig }) => {
+const TokenTestResult = ({ testResult, showError, setShowError }) => {
+  return testResult === 'success' ? (
+    <div className="flex items-center rounded px-2.5 py-2 text-xs font-semibold ml-2 ring-1 ring-inset bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-500 ring-green-600/20 dark:ring-green-500/20">
+      Token retrieval successful
+    </div>
+  ) : (
+    <button
+      onClick={() => setShowError(!showError)}
+      className="flex items-center rounded px-2.5 py-2 text-xs font-semibold ml-2 ring-1 ring-inset bg-red-50 dark:bg-red-400/10 text-red-700 dark:text-red-400 ring-red-600/10 dark:ring-red-400/20"
+    >
+      Failed to retrieve token
+      {showError ? <IconCaretDown size={16} className="ml-1" /> : <IconCaretRight size={16} className="ml-1" />}
+    </button>
+  );
+};
+
+export const VaultCloudWidget = ({ className, config, setConfig, collection }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const [showError, setShowError] = useState(false);
   const getTokenFn = ({ clientID, clientSecret }) => {
     const url = 'https://auth.idp.hashicorp.com/oauth2/token';
     const body = {
@@ -24,7 +41,11 @@ export const VaultCloudWidget = ({ className, config, setConfig }) => {
       body
     })
       .then((data) => data)
-      .catch((error) => console.error('Failed to fetch data', error));
+      .catch((error) => {
+        console.log('Failed to fetch data', { error });
+        console.error('Failed to fetch data', { error });
+        return Promise.reject(error);
+      });
   };
   const [vaultConfig, setVaultConfig] = useState({
     ...config,
@@ -41,20 +62,21 @@ export const VaultCloudWidget = ({ className, config, setConfig }) => {
   const testTokenRequest = () => {
     setTestResult(null);
     setIsLoading(true);
-    try {
-      vaultConfig.platformConfig
-        .getToken({
-          clientID: vaultConfig.secretConfig?.clientID,
-          clientSecret: vaultConfig.secretConfig?.clientSecret
-        })
-        .then((response) => {
-          setIsLoading(false);
-          setTestResult(response?.access_token ? 'success' : 'error');
-        });
-    } catch (error) {
-      setIsLoading(false);
-      setTestResult('error');
-    }
+    vaultConfig.platformConfig
+      .getToken({
+        clientID: vaultConfig.secretConfig?.clientID,
+        clientSecret: vaultConfig.secretConfig?.clientSecret
+      })
+      .then((response) => {
+        setIsLoading(false);
+        console.log('pitié', response);
+        setTestResult(response?.access_token ? 'success' : response);
+      })
+      .catch((error) => {
+        console.log('pitié2', error);
+        setIsLoading(false);
+        setTestResult(error);
+      });
   };
   console.log({ vaultConfig });
   const sectionClasses =
@@ -62,6 +84,9 @@ export const VaultCloudWidget = ({ className, config, setConfig }) => {
   const buttonDisabled = useMemo(() => {
     return isLoading || !vaultConfig.secretConfig?.clientID || !vaultConfig.secretConfig?.clientSecret;
   }, [isLoading, vaultConfig.secretConfig?.clientID, vaultConfig.secretConfig?.clientSecret]);
+  const saveSecrets = () => {
+    console.log('save secrets', collection);
+  };
   return (
     <div className={`${className}`}>
       <div className={sectionClasses}>
@@ -99,18 +124,7 @@ export const VaultCloudWidget = ({ className, config, setConfig }) => {
             }
           />
         </div>
-        <div className="flex items-center w-full justify-end mt-2">
-          {testResult && (
-            <div
-              className={`flex items-center rounded px-2.5 py-2 text-xs font-semibold mr-2 ring-1 ring-inset ${
-                testResult === 'success'
-                  ? 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-500 ring-green-600/20 dark:ring-green-500/20'
-                  : 'bg-red-50 dark:bg-red-400/10 text-red-700 dark:text-red-400 ring-red-600/10 dark:ring-red-400/20'
-              }`}
-            >
-              {testResult === 'success' ? 'Token retrieval successful' : 'Failed to retrieve token'}
-            </div>
-          )}
+        <div className="flex items-center w-full justify-start mt-2">
           <button
             type="button"
             disabled={buttonDisabled}
@@ -125,7 +139,20 @@ export const VaultCloudWidget = ({ className, config, setConfig }) => {
             Test token retrieval
             {isLoading && <IconLoader2 size={16} className="animate-spin ml-2" />}
           </button>
+          {testResult && <TokenTestResult testResult={testResult} showError={showError} setShowError={setShowError} />}
+          <button
+            type="button"
+            className="cursor-pointer ml-2 text-zinc-900 dark:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center transition-all rounded bg-transparent px-2.5 py-2 text-xs font-semibold shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-500"
+            onClick={() => saveSecrets()}
+          >
+            Save secrets
+          </button>
         </div>
+        {showError && (
+          <div className="mt-2 p-2 bg-red-50 dark:bg-red-400/10 rounded-lg text-red-700 dark:text-red-400 ring-red-600/20 dark:ring-red-400/20">
+            <pre className="text-xs">{JSON.stringify(testResult, null, 2)}</pre>
+          </div>
+        )}
       </div>
       <div className={`mt-4 ${sectionClasses}`}>
         <h2 className="text-base font-semibold leading-7">Shared Configuration</h2>

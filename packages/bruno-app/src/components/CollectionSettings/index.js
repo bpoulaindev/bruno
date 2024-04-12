@@ -109,7 +109,7 @@ const CollectionSettings = ({ collection }) => {
         return <Info collection={collection} />;
       }
       case 'secrets': {
-        return <Secrets />;
+        return <Secrets collection={collection} />;
       }
     }
   };
