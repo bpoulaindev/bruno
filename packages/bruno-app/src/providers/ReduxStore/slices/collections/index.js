@@ -124,6 +124,13 @@ export const collectionsSlice = createSlice({
         }
       }
     },
+    saveCredentials: (state, action) => {
+      const { credentials, collectionUid } = action.payload;
+      const collection = findCollectionByUid(state.collections, collectionUid);
+      if (collection) {
+        collection.credentials = credentials;
+      }
+    },
     selectEnvironment: (state, action) => {
       const { environmentUid, collectionUid } = action.payload;
       const collection = findCollectionByUid(state.collections, collectionUid);
@@ -1398,6 +1405,7 @@ export const {
   updateSettingsSelectedTab,
   collectionUnlinkEnvFileEvent,
   saveEnvironment,
+  saveCredentials,
   selectEnvironment,
   newItem,
   deleteItem,

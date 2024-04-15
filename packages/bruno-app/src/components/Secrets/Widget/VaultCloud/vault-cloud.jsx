@@ -3,6 +3,10 @@ import { useMemo, useState } from 'react';
 import { sendSimpleHttpRequest } from 'utils/network';
 import Spinner from 'components/Spinner';
 import { IconCaretDown, IconCaretRight, IconLoader, IconLoader2 } from '@tabler/icons';
+import { saveCredentials, saveEnvironment } from 'providers/ReduxStore/slices/collections/actions';
+import cloneDeep from 'lodash/cloneDeep';
+import toast from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
 
 const TokenTestResult = ({ testResult, showError, setShowError }) => {
   return testResult === 'success' ? (
@@ -21,6 +25,7 @@ const TokenTestResult = ({ testResult, showError, setShowError }) => {
 };
 
 export const VaultCloudWidget = ({ className, config, setConfig, collection }) => {
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [showError, setShowError] = useState(false);
@@ -85,6 +90,20 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection }) =
     return isLoading || !vaultConfig.secretConfig?.clientID || !vaultConfig.secretConfig?.clientSecret;
   }, [isLoading, vaultConfig.secretConfig?.clientID, vaultConfig.secretConfig?.clientSecret]);
   const saveSecrets = () => {
+    dispatch(
+      saveCredentials(
+        {
+          name: 'vault-cloud',
+          clientID: vaultConfig.secretConfig?.clientID,
+          clientSecret: vaultConfig.secretConfig?.clientSecret
+        },
+        collection.uid
+      )
+    )
+      .then(() => {
+        toast.success('Changes saved successfully');
+      })
+      .catch(() => toast.error('An error occurred while saving the changes'));
     console.log('save secrets', collection);
   };
   return (

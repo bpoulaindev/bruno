@@ -888,6 +888,18 @@ export const saveEnvironment = (variables, environmentUid, collectionUid) => (di
   });
 };
 
+export const saveCredentials = (credentials, collectionUid) => (dispatch, getState) => {
+  return new Promise((resolve, reject) => {
+    const state = getState();
+    const collection = findCollectionByUid(state.collections.collections, collectionUid);
+    if (!collection) {
+      return reject(new Error('Collection not found'));
+    }
+    console.log('invoking credentials', collection.pathname, credentials);
+    ipcRenderer.invoke('renderer:save-credentials', collection.pathname, credentials).then(resolve).catch(reject);
+  });
+};
+
 export const selectEnvironment = (environmentUid, collectionUid) => (dispatch, getState) => {
   return new Promise((resolve, reject) => {
     const state = getState();

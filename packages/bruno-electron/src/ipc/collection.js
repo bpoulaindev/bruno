@@ -20,8 +20,10 @@ const { generateUidBasedOnHash, stringifyJson, safeParseJSON, safeStringifyJSON 
 const { moveRequestUid, deleteRequestUid } = require('../cache/requestUids');
 const { deleteCookiesForDomain, getDomainsWithCookies } = require('../utils/cookies');
 const EnvironmentSecretsStore = require('../store/env-secrets');
+const CredentialsSecretsStore = require('../store/creds-secrets');
 
 const environmentSecretsStore = new EnvironmentSecretsStore();
+const credentialsSecretsStore = new CredentialsSecretsStore();
 
 const envHasSecrets = (environment = {}) => {
   const secrets = _.filter(environment.variables, (v) => v.secret);
@@ -259,6 +261,27 @@ const registerRendererEventHandlers = (mainWindow, watcher, lastOpenedCollection
 
       const content = envJsonToBru(environment);
       await writeFile(envFilePath, content);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  });
+
+  // save credentials
+  ipcMain.handle('renderer:save-credentials', async (event, collectionPathname, credentials) => {
+    try {
+      const configFilePath = path.join(collectionPathname, 'bruno.json');
+      credentialsSecretsStore.storeCredsSecrets(collectionPathname, credentials);
+      const brunoConfig = fs.readFileSync(configFilePath, 'utf8');
+      const content = JSON.parse(brunoConfig);
+      if (!Array.isArray(content.credentials)) {
+        content.credentials = [];
+      }
+      content.credentials.push({
+        name: credentials.name,
+        clientID: 'clientID',
+        clientSecret: 'clientSecret'
+      });
+      await writeFile(configFilePath, JSON.stringify(content));
     } catch (error) {
       return Promise.reject(error);
     }
