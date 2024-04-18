@@ -1,9 +1,9 @@
 import { SecretField } from 'components/Secrets/Editor/field';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { sendSimpleHttpRequest } from 'utils/network';
 import Spinner from 'components/Spinner';
 import { IconCaretDown, IconCaretRight, IconLoader, IconLoader2 } from '@tabler/icons';
-import { saveCredentials, saveEnvironment } from 'providers/ReduxStore/slices/collections/actions';
+import { saveCredentials, getCredentials } from 'providers/ReduxStore/slices/collections/actions';
 import cloneDeep from 'lodash/cloneDeep';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
@@ -74,11 +74,9 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection }) =
       })
       .then((response) => {
         setIsLoading(false);
-        console.log('pitié', response);
         setTestResult(response?.access_token ? 'success' : response);
       })
       .catch((error) => {
-        console.log('pitié2', error);
         setIsLoading(false);
         setTestResult(error);
       });
@@ -89,13 +87,19 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection }) =
   const buttonDisabled = useMemo(() => {
     return isLoading || !vaultConfig.secretConfig?.clientID || !vaultConfig.secretConfig?.clientSecret;
   }, [isLoading, vaultConfig.secretConfig?.clientID, vaultConfig.secretConfig?.clientSecret]);
-  const saveSecrets = () => {
+
+  const saveSecrets = useCallback(() => {
     dispatch(
       saveCredentials(
         {
-          name: 'vault-cloud',
-          clientID: vaultConfig.secretConfig?.clientID,
-          clientSecret: vaultConfig.secretConfig?.clientSecret
+          name: vaultConfig.sharedConfig.name,
+          orgId: vaultConfig.sharedConfig.orgID,
+          projectId: vaultConfig.sharedConfig.projectID,
+          path: vaultConfig.sharedConfig.path,
+          secretConfig: {
+            clientID: vaultConfig.secretConfig?.clientID,
+            clientSecret: vaultConfig.secretConfig?.clientSecret
+          }
         },
         collection.uid
       )
@@ -105,7 +109,25 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection }) =
       })
       .catch(() => toast.error('An error occurred while saving the changes'));
     console.log('save secrets', collection);
+  }, [vaultConfig.secretConfig, vaultConfig.sharedConfig]);
+
+  const getStoredSecrets = () => {
+    dispatch(getCredentials(collection.uid, vaultConfig.sharedConfig.name))
+      .then((data) => {
+        console.log('getStoredSecrets', data);
+        setVaultConfig({
+          ...vaultConfig,
+          secretConfig: {
+            clientID: data.clientID,
+            clientSecret: data.clientSecret
+          }
+        });
+      })
+      .catch((error) => {
+        console.log('getStoredSecrets', error);
+      });
   };
+
   return (
     <div className={`${className}`}>
       <div className={sectionClasses}>
@@ -165,6 +187,13 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection }) =
             onClick={() => saveSecrets()}
           >
             Save secrets
+          </button>
+          <button
+            type="button"
+            className="cursor-pointer ml-2 text-zinc-900 dark:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center transition-all rounded bg-transparent px-2.5 py-2 text-xs font-semibold shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-500"
+            onClick={() => getStoredSecrets()}
+          >
+            Get secrets
           </button>
         </div>
         {showError && (

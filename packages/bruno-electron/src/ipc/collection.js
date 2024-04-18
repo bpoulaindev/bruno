@@ -266,22 +266,57 @@ const registerRendererEventHandlers = (mainWindow, watcher, lastOpenedCollection
     }
   });
 
+  const transformCredentials = (credentials) => {
+    return Object.fromEntries(Object.entries(credentials).map(([key, value]) => [key, `${key}`]));
+  };
   // save credentials
   ipcMain.handle('renderer:save-credentials', async (event, collectionPathname, credentials) => {
     try {
       const configFilePath = path.join(collectionPathname, 'bruno.json');
-      credentialsSecretsStore.storeCredsSecrets(collectionPathname, credentials);
+      credentialsSecretsStore.storeCredsSecrets(collectionPathname, {
+        name: credentials.name,
+        ...credentials.secretConfig
+      });
       const brunoConfig = fs.readFileSync(configFilePath, 'utf8');
       const content = JSON.parse(brunoConfig);
       if (!Array.isArray(content.credentials)) {
         content.credentials = [];
       }
-      content.credentials.push({
-        name: credentials.name,
-        clientID: 'clientID',
-        clientSecret: 'clientSecret'
-      });
-      await writeFile(configFilePath, JSON.stringify(content));
+      // check if credentials already exist, then override
+      const existingCreds = content.credentials.find((c) => c.name === credentials.name);
+      if (existingCreds) {
+        content.credentials = content.credentials.map((c) => {
+          if (c.name === credentials.name) {
+            return {
+              ...c,
+              ...credentials,
+              secretConfig: {
+                ...c.secretConfig,
+                ...transformCredentials(credentials.secretConfig)
+              }
+            };
+          }
+          return c;
+        });
+      } else {
+        content.credentials.push({
+          ...credentials,
+          secretConfig: {
+            ...transformCredentials(credentials.secretConfig)
+          }
+        });
+      }
+      await writeFile(configFilePath, JSON.stringify(content, null, 2));
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  });
+
+  // get credentials
+  ipcMain.handle('renderer:get-credentials', async (event, collectionPathname, name) => {
+    try {
+      const data = credentialsSecretsStore.getCredsSecrets(collectionPathname, name);
+      return Promise.resolve(data);
     } catch (error) {
       return Promise.reject(error);
     }
