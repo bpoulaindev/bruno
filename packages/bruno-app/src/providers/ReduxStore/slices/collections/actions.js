@@ -888,15 +888,15 @@ export const saveEnvironment = (variables, environmentUid, collectionUid) => (di
   });
 };
 
-export const saveCredentials = (credentials, collectionUid) => (dispatch, getState) => {
+export const saveSecretsInstance = (instance, collectionUid) => (dispatch, getState) => {
   return new Promise((resolve, reject) => {
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
       return reject(new Error('Collection not found'));
     }
-    console.log('invoking credentials', collection.pathname, credentials);
-    ipcRenderer.invoke('renderer:save-credentials', collection.pathname, credentials).then(resolve).catch(reject);
+    console.log('invoking instance', collection.pathname, instance);
+    ipcRenderer.invoke('renderer:save-secrets-instance', collection.pathname, instance).then(resolve).catch(reject);
   });
 };
 
@@ -907,7 +907,7 @@ export const getCredentials = (collectionUid, name) => (dispatch, getState) => {
     if (!collection) {
       return reject(new Error('Collection not found'));
     }
-    ipcRenderer.invoke('renderer:get-credentials', collection.pathname, name).then(resolve).catch(reject);
+    ipcRenderer.invoke('renderer:get-secrets-from-instance', collection.pathname, name).then(resolve).catch(reject);
   });
 };
 

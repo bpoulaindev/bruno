@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { IconEye, IconEyeOff, IconPlus } from '@tabler/icons';
+import { IconCopy, IconEdit, IconEye, IconEyeOff, IconPlus, IconTrash } from '@tabler/icons';
 import { SecretsEditor } from 'components/Secrets/Editor/editor';
+import toast from 'react-hot-toast';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 
 const Button = ({ className, onClick, children }) => {
   return (
@@ -14,66 +16,22 @@ const Button = ({ className, onClick, children }) => {
   );
 };
 
-const VaultField = ({ fieldKey, name, value, onChange }) => {
-  return (
-    <div className="flex flex-col items-start mt-1 ml-1">
-      <label
-        htmlFor={fieldKey}
-        className="flex items-center min-w-28 whitespace-nowrap text-xs font-medium leading-6 text-zinc-900 dark:text-zinc-50"
-      >
-        {name}
-      </label>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        name={fieldKey}
-        id={fieldKey}
-        className="block w-full rounded border-0 py-1 px-3 text-zinc-900 bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-50 shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs sm:leading-6"
-        placeholder={`Your ${name}`}
-      />
-    </div>
-  );
-};
-// node contains name, orgId, projectId, path
-// each category contains key, name and value
-const VaultNode = ({ key, node, setNode }) => {
-  return (
-    <div className="flex items-center mt-1">
-      {Object.entries(node).map(([nodeKey, field]) => (
-        <VaultField
-          key={nodeKey}
-          fieldKey={field.key}
-          name={field.name}
-          value={field.value}
-          onChange={(value) =>
-            setNode((prevNode) => {
-              const newNode = { ...prevNode };
-              newNode[key] = { ...field, value };
-              return newNode;
-            })
-          }
-        />
-      ))}
-    </div>
-  );
-};
-
 export default function Secrets({ collection }) {
   const [vaultData, setVaultData] = useState();
-  const [nodes, setNodes] = useState([
+  const [instances, setInstances] = useState([
     {
       name: {
         key: 'name',
         name: 'Name',
         value: 'VaultExample'
       },
-      orgId: {
-        key: 'orgId',
+      orgID: {
+        key: 'orgID',
         name: 'Organization ID',
         value: 'd7a4b4ba-db1c-43a8-ae26-31cfca663574'
       },
-      projectId: {
-        key: 'projectId',
+      projectID: {
+        key: 'projectID',
         name: 'Project ID',
         value: '095e8714-9c53-45d4-ae06-48abef86adeb'
       },
@@ -133,65 +91,96 @@ export default function Secrets({ collection }) {
   // factor all of the elements into a single component
   const vaultElements = [{}];
   const [isOpen, setIsOpen] = useState(false);
+  const [editInstance, setEditInstance] = useState();
+  console.log('pitié pitié pitié', collection);
+  const clearAndOpen = () => {
+    setEditInstance(undefined);
+    setIsOpen(true);
+  };
+  const copyClipboard = (value) => {
+    navigator.clipboard.writeText(value);
+    toast.success('Copied to clipboard');
+  };
+  // TODO : add the provider type to the collection and config file
+  const InstanceItem = ({ instance }) => {
+    const { secretConfig, ...rest } = instance;
+    const editInstance = () => {
+      setEditInstance(instance);
+      setIsOpen(true);
+    };
+    return (
+      <div className="flex items-center">
+        <div className="flex flex-wrap items-center ring-1 ring-zinc-200 dark:ring-zinc-700 w-full rounded bg-zinc-50 dark:bg-transparent/10 py-1 px-3 my-1">
+          {Object.entries(rest).map(([key, value], index) => (
+            <div key={`configField_${index}`} className="flex flex-col py-1 mr-4 shrink min-w-28">
+              <div className="flex items-center w-full">
+                <span className="text-xs font-bold capitalize">{key}</span>
+                <span className="w-full ml-1 h-1 border-t border-dashed" />
+              </div>
+              <button
+                className="text-xs flex justify-start !p-0 mt-1 max-w-28 truncate cursor-pointer"
+                onClick={() => copyClipboard(value)}
+              >
+                <span
+                  className="truncate max-w-28"
+                  data-tooltip-id={`tooltip_${key}_${index}`}
+                  data-tooltip-content={value}
+                >
+                  {value}
+                </span>
+                <ReactTooltip id={`tooltip_${key}_${index}`} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-col ml-1.5 !min-w-[52px] grow">
+          <Button className="w-full flex justify-center !p-1" onClick={() => editInstance()}>
+            <IconEdit size={16} />
+          </Button>
+          <div className="flex mt-1">
+            <Button className="w-fit !p-1">
+              <IconCopy size={16} />
+            </Button>
+            <Button className="w-fit ml-1 !p-1">
+              <IconTrash size={16} className="text-red-600" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
   return (
     <div className="mt-1 flex flex-col w-full">
-      <div className="flex items-center w-full justify-between">
-        <span className="font-semibold text-lg">Secrets Modules</span>
-        <Button className="w-fit flex items-center ring-0" onClick={() => setIsOpen(true)}>
-          <IconPlus size={16} className="mr-1" />
-          New Node
-        </Button>
-      </div>
       {isOpen && (
         <SecretsEditor
           onClose={() => setIsOpen(false)}
           onConfirm={(data) => console.log(data)}
           collection={collection}
+          instance={editInstance}
         />
       )}
-      {/* <div className="flex flex-col justify-end grow min-w-[300px] my-1">
-        <div className="flex items-center">
-          <label htmlFor="apiToken" className=" block text-xs font-medium leading-6 text-zinc-900 dark:text-zinc-50">
-            API Token
-          </label>
-          <Button
-            className="ml-2 py-1 border-0 ring-0 hover:ring-1"
-            onClick={(e) => {
-              setHideToken(!hideToken);
-            }}
-          >
-            {hideToken ? <IconEye size={16} /> : <IconEyeOff size={16} />}
-          </Button>
-        </div>
-        <textarea
-          rows={hideToken ? 1 : 4}
-          name="apiToken input"
-          id="apiToken"
-          itemType="password"
-          disabled={hideToken}
-          className={`block w-full mt-4 ${
-            hideToken && 'blur-sm overflow-hidden'
-          } max-w-96 rounded-md border-0 py-2 px-3 bg-white dark:bg-zinc-900 text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs`}
-          value={apiToken}
-          onChange={(e) => setApiToken(e.target.value)}
-          placeholder="Your API Token here"
-        />
+      <div className="flex items-center w-full justify-between">
+        <span className="font-semibold text-lg">Secrets Instances</span>
+        <Button className="w-fit flex items-center ring-0" onClick={() => clearAndOpen()}>
+          <IconPlus size={16} className="mr-1" />
+          New Instance
+        </Button>
       </div>
-      <div className="flex items-center w-full flex-wrap">
+      {!collection.brunoConfig.secrets || collection.brunoConfig.secrets?.length === 0 ? (
+        <div className="text-center mt-4 text-sm">No instance found</div>
+      ) : (
         <div className="flex flex-col mt-4 min-w-[350px] my-1">
-          {nodes.map((node, index) => (
-            <VaultNode
-              key={index}
-              node={node}
-              setNode={(newValue) => setNodes(nodes.map((node, i) => (i === index ? newValue : node)))}
+          {collection.brunoConfig.secrets?.map((instance, index) => (
+            <InstanceItem
+              key={`instance_${index}`}
+              instance={instance}
+              setInstance={(newValue) =>
+                setInstances(instances.map((instance, i) => (i === index ? newValue : instance)))
+              }
             />
           ))}
-          <Button className="mt-2 w-fit" onClick={() => setIsOpen(true)}>
-            New Node
-          </Button>
         </div>
-        <span className="m-4">or</span>
-      </div> */}
+      )}
     </div>
   );
 }

@@ -28,17 +28,24 @@ const Options = ({ options, setSelectedPlatform, dropdownRef }) => {
   );
 };
 
-export const SecretsEditor = ({ onConfirm, onClose, collection }) => {
+export const SecretsEditor = ({ onConfirm, onClose, collection, instance }) => {
   const dropdownTippyRef = useRef();
   const onDropdownCreate = (ref) => (dropdownTippyRef.current = ref);
-  const platforms = ['Vault Cloud', 'Vault Server'];
-  const [selectedPlatform, setSelectedPlatform] = useState(null);
+  const platforms = ['vault-cloud', 'vault-server'];
+  const [selectedPlatform, setSelectedPlatform] = useState(instance?.provider || undefined);
+  const saveSecretsRef = useRef(null);
+  const triggerSaveSecrets = () => {
+    if (saveSecretsRef.current) {
+      saveSecretsRef.current();
+      onClose();
+    }
+  };
   return (
     <Modal
       size="lg"
       title="Add a new secret platform"
       confirmText="Save"
-      handleConfirm={onConfirm}
+      handleConfirm={() => triggerSaveSecrets()}
       handleCancel={onClose}
     >
       <div className="flex items-center">
@@ -56,7 +63,15 @@ export const SecretsEditor = ({ onConfirm, onClose, collection }) => {
           <Options options={platforms} setSelectedPlatform={setSelectedPlatform} dropdownRef={dropdownTippyRef} />
         </Dropdown>
       </div>
-      {selectedPlatform && <SecretsWidget type={selectedPlatform} collection={collection} className="mt-2" />}
+      {selectedPlatform && (
+        <SecretsWidget
+          type={selectedPlatform}
+          collection={collection}
+          instance={instance}
+          saveSecretsRef={saveSecretsRef}
+          className="mt-2"
+        />
+      )}
     </Modal>
   );
 };

@@ -20,10 +20,10 @@ const { generateUidBasedOnHash, stringifyJson, safeParseJSON, safeStringifyJSON 
 const { moveRequestUid, deleteRequestUid } = require('../cache/requestUids');
 const { deleteCookiesForDomain, getDomainsWithCookies } = require('../utils/cookies');
 const EnvironmentSecretsStore = require('../store/env-secrets');
-const CredentialsSecretsStore = require('../store/creds-secrets');
+const SecretsInstanceStore = require('../store/secrets-instance');
 
 const environmentSecretsStore = new EnvironmentSecretsStore();
-const credentialsSecretsStore = new CredentialsSecretsStore();
+const secretsInstanceStore = new SecretsInstanceStore();
 
 const envHasSecrets = (environment = {}) => {
   const secrets = _.filter(environment.variables, (v) => v.secret);
@@ -266,43 +266,43 @@ const registerRendererEventHandlers = (mainWindow, watcher, lastOpenedCollection
     }
   });
 
-  const transformCredentials = (credentials) => {
-    return Object.fromEntries(Object.entries(credentials).map(([key, value]) => [key, `${key}`]));
+  const transformSecrets = (secrets) => {
+    return Object.fromEntries(Object.entries(secrets).map(([key, value]) => [key, `${key}`]));
   };
   // save credentials
-  ipcMain.handle('renderer:save-credentials', async (event, collectionPathname, credentials) => {
+  ipcMain.handle('renderer:save-secrets-instance', async (event, collectionPathname, instance) => {
     try {
       const configFilePath = path.join(collectionPathname, 'bruno.json');
-      credentialsSecretsStore.storeCredsSecrets(collectionPathname, {
-        name: credentials.name,
-        ...credentials.secretConfig
+      secretsInstanceStore.storeSecretsInstance(collectionPathname, {
+        name: instance.name,
+        ...instance.secretConfig
       });
       const brunoConfig = fs.readFileSync(configFilePath, 'utf8');
       const content = JSON.parse(brunoConfig);
-      if (!Array.isArray(content.credentials)) {
-        content.credentials = [];
+      if (!Array.isArray(content.secrets)) {
+        content.secrets = [];
       }
       // check if credentials already exist, then override
-      const existingCreds = content.credentials.find((c) => c.name === credentials.name);
-      if (existingCreds) {
-        content.credentials = content.credentials.map((c) => {
-          if (c.name === credentials.name) {
+      const existingInstances = content.secrets.find((c) => c.name === instance.name);
+      if (existingInstances) {
+        content.secrets = content.secrets.map((c) => {
+          if (c.name === instance.name) {
             return {
               ...c,
-              ...credentials,
+              ...instance,
               secretConfig: {
                 ...c.secretConfig,
-                ...transformCredentials(credentials.secretConfig)
+                ...transformSecrets(instance.secretConfig)
               }
             };
           }
           return c;
         });
       } else {
-        content.credentials.push({
-          ...credentials,
+        content.secrets.push({
+          ...instance,
           secretConfig: {
-            ...transformCredentials(credentials.secretConfig)
+            ...transformSecrets(instance.secretConfig)
           }
         });
       }
@@ -313,9 +313,9 @@ const registerRendererEventHandlers = (mainWindow, watcher, lastOpenedCollection
   });
 
   // get credentials
-  ipcMain.handle('renderer:get-credentials', async (event, collectionPathname, name) => {
+  ipcMain.handle('renderer:get-secrets-from-instance', async (event, collectionPathname, name) => {
     try {
-      const data = credentialsSecretsStore.getCredsSecrets(collectionPathname, name);
+      const data = secretsInstanceStore.getSecretsFromInstance(collectionPathname, name);
       return Promise.resolve(data);
     } catch (error) {
       return Promise.reject(error);

@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { sendSimpleHttpRequest } from 'utils/network';
 import Spinner from 'components/Spinner';
 import { IconCaretDown, IconCaretRight, IconLoader, IconLoader2 } from '@tabler/icons';
-import { saveCredentials, getCredentials } from 'providers/ReduxStore/slices/collections/actions';
+import { saveSecretsInstance, getInstance } from 'providers/ReduxStore/slices/collections/actions';
 import cloneDeep from 'lodash/cloneDeep';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
@@ -24,7 +24,7 @@ const TokenTestResult = ({ testResult, showError, setShowError }) => {
   );
 };
 
-export const VaultCloudWidget = ({ className, config, setConfig, collection }) => {
+export const VaultCloudWidget = ({ className, config, setConfig, collection, saveSecretsRef }) => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -54,6 +54,10 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection }) =
   };
   const [vaultConfig, setVaultConfig] = useState({
     ...config,
+    sharedConfig: {
+      ...config.sharedConfig,
+      provider: 'vault-cloud'
+    },
     platformConfig: {
       getToken: ({ clientID, clientSecret }) => getTokenFn({ clientID, clientSecret }),
       getSecret: () => {}
@@ -89,12 +93,18 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection }) =
   }, [isLoading, vaultConfig.secretConfig?.clientID, vaultConfig.secretConfig?.clientSecret]);
 
   const saveSecrets = useCallback(() => {
+    console.log('triggering save function');
+    // name has changed
+    if (vaultConfig.sharedConfig.name !== config.sharedConfig.name) {
+      di;
+    }
     dispatch(
-      saveCredentials(
+      saveSecretsInstance(
         {
+          provider: 'vault-cloud',
           name: vaultConfig.sharedConfig.name,
-          orgId: vaultConfig.sharedConfig.orgID,
-          projectId: vaultConfig.sharedConfig.projectID,
+          orgID: vaultConfig.sharedConfig.orgID,
+          projectID: vaultConfig.sharedConfig.projectID,
           path: vaultConfig.sharedConfig.path,
           secretConfig: {
             clientID: vaultConfig.secretConfig?.clientID,
@@ -110,6 +120,7 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection }) =
       .catch(() => toast.error('An error occurred while saving the changes'));
     console.log('save secrets', collection);
   }, [vaultConfig.secretConfig, vaultConfig.sharedConfig]);
+  saveSecretsRef.current = saveSecrets;
 
   const getStoredSecrets = () => {
     dispatch(getCredentials(collection.uid, vaultConfig.sharedConfig.name))

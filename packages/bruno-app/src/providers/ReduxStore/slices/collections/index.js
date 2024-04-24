@@ -124,7 +124,7 @@ export const collectionsSlice = createSlice({
         }
       }
     },
-    saveCredentials: (state, action) => {
+    saveSecretsInstance: (state, action) => {
       const { credentials, collectionUid } = action.payload;
       const collection = findCollectionByUid(state.collections, collectionUid);
       if (collection) {
@@ -1405,7 +1405,7 @@ export const {
   updateSettingsSelectedTab,
   collectionUnlinkEnvFileEvent,
   saveEnvironment,
-  saveCredentials,
+  saveSecretsInstance,
   selectEnvironment,
   newItem,
   deleteItem,

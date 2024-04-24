@@ -6,17 +6,17 @@ const _ = require('lodash');
 class SecretsInstanceStore {
   constructor() {
     this.store = new Store({
-      name: 'creds-secrets',
+      name: 'secrets-instance',
       clearInvalidConfig: true
     });
   }
   isValidValue(val) {
     return typeof val === 'string' && val.length >= 0;
   }
-  storeCredsSecrets(collectionPathname, credentials) {
+  storeSecretsInstance(collectionPathname, instance) {
     const collections = this.store.get('collections') || [];
     const collectionIndex = collections.findIndex((c) => c.path === collectionPathname);
-    const encryptedCredentials = Object.entries(credentials).reduce((acc, [key, value]) => {
+    const encryptedCredentials = Object.entries(instance).reduce((acc, [key, value]) => {
       if (key === 'name') {
         acc[key] = value;
       } else {
@@ -27,16 +27,16 @@ class SecretsInstanceStore {
     if (collectionIndex === -1) {
       collections.push({
         path: collectionPathname,
-        credentials: [encryptedCredentials]
+        secrets: [encryptedCredentials]
       });
     } else {
       const collection = collections[collectionIndex];
-      const credIndex = (collection.credentials || []).findIndex((c) => c.name === credentials.name);
+      const credIndex = (collection.credentials || []).findIndex((c) => c.name === instance.name);
       if (credIndex === -1) {
-        collection.credentials = [...(collection.credentials || []), credentials];
+        collection.secrets = [...(collection.secrets || []), instance];
       } else {
-        collection.credentials = collection.credentials.map((c) => {
-          if (c.name === credentials.name) {
+        collection.secrets = collection.secrets.map((c) => {
+          if (c.name === instance.name) {
             return {
               ...c,
               ...encryptedCredentials
@@ -49,16 +49,16 @@ class SecretsInstanceStore {
     this.store.set('collections', collections);
   }
 
-  getCredsSecrets(collectionPathname, name) {
+  getSecretsFromInstance(collectionPathname, name) {
     const collections = this.store.get('collections') || [];
     const collection = _.find(collections, (c) => c.path === collectionPathname);
     if (!collection) {
       return [];
     }
 
-    const cred = _.find(collection.credentials || [], (e) => e.name === name);
-    return cred
-      ? Object.entries(cred || {}).reduce((acc, [key, value]) => {
+    const instance = _.find(collection.secrets || [], (e) => e.name === name);
+    return instance
+      ? Object.entries(instance || {}).reduce((acc, [key, value]) => {
           if (key === 'name') {
             return acc;
           }
@@ -68,30 +68,30 @@ class SecretsInstanceStore {
       : [];
   }
 
-  renameCredsSecrets(collectionPathname, oldName, newName) {
+  renameSecretsInstance(collectionPathname, oldName, newName) {
     const collections = this.store.get('collections') || [];
     const collection = _.find(collections, (c) => c.path === collectionPathname);
     if (!collection) {
       return;
     }
 
-    const cred = _.find(collection.credentials, (e) => e.name === oldName);
-    if (!cred) {
+    const instance = _.find(collection.secrets, (e) => e.name === oldName);
+    if (!instance) {
       return;
     }
 
-    cred.name = newName;
+    instance.name = newName;
     this.store.set('collections', collections);
   }
 
-  deleteCredsSecrets(collectionPathname, name) {
+  deleteSecretsInstance(collectionPathname, name) {
     const collections = this.store.get('collections') || [];
     const collection = _.find(collections, (c) => c.path === collectionPathname);
     if (!collection) {
       return;
     }
 
-    _.remove(collection.credentials, (e) => e.name === name);
+    _.remove(collection.secrets, (e) => e.name === name);
     this.store.set('collections', collections);
   }
 }
