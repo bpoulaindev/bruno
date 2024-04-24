@@ -3,7 +3,7 @@ const Store = require('electron-store');
 const { encryptString, decryptString } = require('../utils/encryption');
 const _ = require('lodash');
 
-class CredsSecretsStore {
+class SecretsInstanceStore {
   constructor() {
     this.store = new Store({
       name: 'creds-secrets',
@@ -13,14 +13,6 @@ class CredsSecretsStore {
   isValidValue(val) {
     return typeof val === 'string' && val.length >= 0;
   }
-  // TODO : adapt to store client credentials in bruno.json
-  /* credentials type :
-    {
-      "name": "service1",
-      "clientID": 'clientID',
-      "clientSecret": 'clientSecret'
-    }[]
-  */
   storeCredsSecrets(collectionPathname, credentials) {
     const collections = this.store.get('collections') || [];
     const collectionIndex = collections.findIndex((c) => c.path === collectionPathname);
@@ -104,4 +96,4 @@ class CredsSecretsStore {
   }
 }
 
-module.exports = CredsSecretsStore;
+module.exports = SecretsInstanceStore;
