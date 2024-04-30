@@ -417,7 +417,10 @@ export const transformRequestToSaveToFilesystem = (item) => {
   });
 
   if (itemToSave.request.body.mode === 'json') {
-    itemToSave.request.body.json = replaceTabsWithSpaces(itemToSave.request.body.json);
+    itemToSave.request.body = {
+      ...itemToSave.request.body,
+      json: replaceTabsWithSpaces(itemToSave.request.body.json)
+    };
   }
 
   return itemToSave;
@@ -640,8 +643,13 @@ export const getAllVariables = (collection) => {
   };
 };
 
-export const maskInputValue = (value) =>
-  value
+export const maskInputValue = (value) => {
+  if (!value || typeof value !== 'string') {
+    return '';
+  }
+
+  return value
     .split('')
     .map(() => '*')
     .join('');
+};

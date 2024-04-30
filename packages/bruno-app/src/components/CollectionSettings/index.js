@@ -171,9 +171,7 @@ const CollectionSettings = ({ collection }) => {
           </div>
         ))}
       </div>
-      <section className={`flex ${['auth', 'script', 'docs', 'clientCert'].includes(tab) ? '' : 'mt-4'}`}>
-        {getTabPanel(tab)}
-      </section>
+      <section className="mt-4 h-full">{getTabPanel(tab)}</section>
     </StyledWrapper>
   );
 };
