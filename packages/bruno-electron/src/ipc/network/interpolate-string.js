@@ -1,5 +1,6 @@
 const { forOwn, cloneDeep } = require('lodash');
 const { interpolate } = require('@usebruno/common');
+const { interpolateSecrets } = require('./secrets/interpolate-secrets');
 
 const interpolateString = (str, { envVars, collectionVariables, processEnvVars }) => {
   if (!str || !str.length || typeof str !== 'string') {
@@ -34,7 +35,6 @@ const interpolateString = (str, { envVars, collectionVariables, processEnvVars }
       }
     }
   };
-
   return interpolate(str, combinedVars);
 };
 

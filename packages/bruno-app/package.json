@@ -19,7 +19,7 @@
     "@tabler/icons": "^1.46.0",
     "@tailwindcss/forms": "^0.5.7",
     "@tippyjs/react": "^4.2.6",
-    "@usebruno/common": "0.1.0",
+    "@usebruno/common": "workspace:*",
     "@usebruno/graphql-docs": "0.1.0",
     "@usebruno/schema": "0.7.0",
     "axios": "^1.5.1",

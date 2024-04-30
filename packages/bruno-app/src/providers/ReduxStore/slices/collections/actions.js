@@ -900,6 +900,15 @@ export const saveSecretsInstance = (instance, collectionUid) => (dispatch, getSt
   });
 };
 
+export const renameSecretsInstance = (collectionPathname, oldName, newName) => (dispatch, getState) => {
+  return new Promise((resolve, reject) => {
+    ipcRenderer
+      .invoke('renderer:rename-secrets-instance', collectionPathname, oldName, newName)
+      .then(resolve)
+      .catch(reject);
+  });
+};
+
 export const getCredentials = (collectionUid, name) => (dispatch, getState) => {
   return new Promise((resolve, reject) => {
     const state = getState();

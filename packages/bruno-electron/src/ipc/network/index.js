@@ -288,7 +288,8 @@ const registerNetworkIpc = (mainWindow) => {
     collectionUid,
     collectionVariables,
     processEnvVars,
-    scriptingConfig
+    scriptingConfig,
+    secretsConfig
   ) => {
     // run pre-request vars
     const preRequestVars = get(request, 'vars.req', []);
@@ -338,7 +339,7 @@ const registerNetworkIpc = (mainWindow) => {
     }
 
     // interpolate variables inside request
-    interpolateVars(request, envVars, collectionVariables, processEnvVars);
+    interpolateVars(request, envVars, collectionVariables, processEnvVars, collectionPath, secretsConfig);
 
     // if this is a graphql request, parse the variables, only after interpolation
     // https://github.com/usebruno/bruno/issues/884
@@ -468,6 +469,7 @@ const registerNetworkIpc = (mainWindow) => {
     const processEnvVars = getProcessEnvVars(collectionUid);
     const brunoConfig = getBrunoConfig(collectionUid);
     const scriptingConfig = get(brunoConfig, 'scripts', {});
+    const secretsConfig = get(brunoConfig, 'secrets', {});
 
     try {
       const controller = new AbortController();
@@ -483,7 +485,8 @@ const registerNetworkIpc = (mainWindow) => {
         collectionUid,
         collectionVariables,
         processEnvVars,
-        scriptingConfig
+        scriptingConfig,
+        secretsConfig
       );
 
       mainWindow.webContents.send('main:run-request-event', {

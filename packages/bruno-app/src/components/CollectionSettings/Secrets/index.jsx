@@ -92,7 +92,6 @@ export default function Secrets({ collection }) {
   const vaultElements = [{}];
   const [isOpen, setIsOpen] = useState(false);
   const [editInstance, setEditInstance] = useState();
-  console.log('pitié pitié pitié', collection);
   const clearAndOpen = () => {
     setEditInstance(undefined);
     setIsOpen(true);

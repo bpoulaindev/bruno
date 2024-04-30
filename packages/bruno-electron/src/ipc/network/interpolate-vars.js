@@ -1,5 +1,6 @@
 const { interpolate } = require('@usebruno/common');
 const { each, forOwn, cloneDeep } = require('lodash');
+const { interpolateSecrets } = require('./secrets/interpolate-secrets');
 
 const getContentType = (headers = {}) => {
   let contentType = '';
@@ -12,7 +13,14 @@ const getContentType = (headers = {}) => {
   return contentType;
 };
 
-const interpolateVars = (request, envVars = {}, collectionVariables = {}, processEnvVars = {}) => {
+const interpolateVars = (
+  request,
+  envVars = {},
+  collectionVariables = {},
+  processEnvVars = {},
+  collectionPath,
+  secretsConfig = []
+) => {
   // we clone envVars because we don't want to modify the original object
   envVars = cloneDeep(envVars);
 
@@ -43,12 +51,18 @@ const interpolateVars = (request, envVars = {}, collectionVariables = {}, proces
         }
       }
     };
-
-    return interpolate(str, combinedVars);
+    const secretsCallback = (match) => {
+      console.log('log inside interpolateSecrets', match);
+      const data = interpolateSecrets(match, secretsConfig, collectionPath);
+      console.log('is this being called?', data);
+      return 'random string';
+    };
+    console.log('right before interpolate', str);
+    return secretsConfig && collectionPath
+      ? interpolate(str, combinedVars, secretsCallback)
+      : interpolate(str, combinedVars);
   };
-
   request.url = _interpolate(request.url);
-
   forOwn(request.headers, (value, key) => {
     delete request.headers[key];
     request.headers[_interpolate(key)] = _interpolate(value);

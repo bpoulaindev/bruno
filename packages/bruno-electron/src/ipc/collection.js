@@ -322,6 +322,29 @@ const registerRendererEventHandlers = (mainWindow, watcher, lastOpenedCollection
     }
   });
 
+  ipcMain.handle('renderer:rename-secrets-instance', async (event, collectionPathname, oldName, newName) => {
+    try {
+      const configFilePath = path.join(collectionPathname, 'bruno.json');
+      secretsInstanceStore.renameSecretsInstance(collectionPathname, oldName, newName);
+      const brunoConfig = fs.readFileSync(configFilePath, 'utf8');
+      const content = JSON.parse(brunoConfig);
+      if (!Array.isArray(content.secrets)) {
+        content.secrets = [];
+      }
+      content.secrets = content.secrets.map((c) => {
+        if (c.name === oldName) {
+          return {
+            ...c,
+            name: newName
+          };
+        }
+        return c;
+      });
+      await writeFile(configFilePath, JSON.stringify(content, null, 2));
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  });
   // rename environment
   ipcMain.handle('renderer:rename-environment', async (event, collectionPathname, environmentName, newName) => {
     try {

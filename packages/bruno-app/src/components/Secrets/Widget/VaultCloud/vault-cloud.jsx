@@ -3,7 +3,11 @@ import { useCallback, useMemo, useState } from 'react';
 import { sendSimpleHttpRequest } from 'utils/network';
 import Spinner from 'components/Spinner';
 import { IconCaretDown, IconCaretRight, IconLoader, IconLoader2 } from '@tabler/icons';
-import { saveSecretsInstance, getInstance } from 'providers/ReduxStore/slices/collections/actions';
+import {
+  saveSecretsInstance,
+  getInstance,
+  renameSecretsInstance
+} from 'providers/ReduxStore/slices/collections/actions';
 import cloneDeep from 'lodash/cloneDeep';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
@@ -96,13 +100,17 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection, sav
     console.log('triggering save function');
     // name has changed
     if (vaultConfig.sharedConfig.name !== config.sharedConfig.name) {
-      di;
+      dispatch(renameSecretsInstance(collection.pathname, config.sharedConfig.name, vaultConfig.sharedConfig.name))
+        .then(() => {
+          toast.success('Changes saved successfully');
+        })
+        .catch(() => toast.error('An error occurred while saving the changes'));
     }
     dispatch(
       saveSecretsInstance(
         {
-          provider: 'vault-cloud',
           name: vaultConfig.sharedConfig.name,
+          provider: 'vault-cloud',
           orgID: vaultConfig.sharedConfig.orgID,
           projectID: vaultConfig.sharedConfig.projectID,
           path: vaultConfig.sharedConfig.path,
@@ -118,8 +126,7 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection, sav
         toast.success('Changes saved successfully');
       })
       .catch(() => toast.error('An error occurred while saving the changes'));
-    console.log('save secrets', collection);
-  }, [vaultConfig.secretConfig, vaultConfig.sharedConfig]);
+  }, [config.sharedConfig.name, vaultConfig.secretConfig, vaultConfig.sharedConfig]);
   saveSecretsRef.current = saveSecrets;
 
   const getStoredSecrets = () => {
