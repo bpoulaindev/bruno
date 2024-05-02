@@ -345,6 +345,15 @@ const registerRendererEventHandlers = (mainWindow, watcher, lastOpenedCollection
       return Promise.reject(error);
     }
   });
+  // reset credentials
+  ipcMain.handle('renderer:reset-secrets-instance', async (event, collectionPathname) => {
+    try {
+      secretsInstanceStore.resetSecretsInstance(collectionPathname);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  });
+
   // rename environment
   ipcMain.handle('renderer:rename-environment', async (event, collectionPathname, environmentName, newName) => {
     try {

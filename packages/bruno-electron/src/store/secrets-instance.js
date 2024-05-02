@@ -31,9 +31,15 @@ class SecretsInstanceStore {
       });
     } else {
       const collection = collections[collectionIndex];
-      const credIndex = (collection.credentials || []).findIndex((c) => c.name === instance.name);
+      const credIndex = (collection.secrets || []).findIndex((c) => c.name === instance.name);
       if (credIndex === -1) {
-        collection.secrets = [...(collection.secrets || []), instance];
+        collection.secrets = [
+          ...(collection.secrets || []),
+          {
+            name: instance.name,
+            ...encryptedCredentials
+          }
+        ];
       } else {
         collection.secrets = collection.secrets.map((c) => {
           if (c.name === instance.name) {
@@ -55,7 +61,6 @@ class SecretsInstanceStore {
     if (!collection) {
       return [];
     }
-
     const instance = _.find(collection.secrets || [], (e) => e.name === name);
     return instance
       ? Object.entries(instance || {}).reduce((acc, [key, value]) => {
@@ -70,18 +75,18 @@ class SecretsInstanceStore {
 
   renameSecretsInstance(collectionPathname, oldName, newName) {
     const collections = this.store.get('collections') || [];
-    const collection = _.find(collections, (c) => c.path === collectionPathname);
-    if (!collection) {
-      return;
-    }
-
-    const instance = _.find(collection.secrets, (e) => e.name === oldName);
-    if (!instance) {
-      return;
-    }
-
-    instance.name = newName;
-    this.store.set('collections', collections);
+    const newCollections = collections.map((c) => {
+      if (c.path === collectionPathname) {
+        c.secrets = c.secrets.map((instance) => {
+          if (instance.name === oldName) {
+            instance.name = newName;
+          }
+          return instance;
+        });
+      }
+      return c;
+    });
+    this.store.set('collections', newCollections);
   }
 
   deleteSecretsInstance(collectionPathname, name) {
@@ -92,6 +97,17 @@ class SecretsInstanceStore {
     }
 
     _.remove(collection.secrets, (e) => e.name === name);
+    this.store.set('collections', collections);
+  }
+
+  resetSecretsInstance(collectionPathname) {
+    const collections = this.store.get('collections') || [];
+    const collection = _.find(collections, (c) => c.path === collectionPathname);
+    if (!collection) {
+      return;
+    }
+
+    collection.secrets = [];
     this.store.set('collections', collections);
   }
 }

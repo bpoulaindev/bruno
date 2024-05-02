@@ -1,5 +1,6 @@
 const { forOwn, cloneDeep } = require('lodash');
-const { interpolate } = require('@usebruno/common');
+// const { interpolate } = require('@usebruno/common');
+const { interpolate } = require('./secrets/dirty-interpolate');
 const { interpolateSecrets } = require('./secrets/interpolate-secrets');
 
 const interpolateString = (str, { envVars, collectionVariables, processEnvVars }) => {

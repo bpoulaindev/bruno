@@ -1,6 +1,8 @@
-const { interpolate } = require('@usebruno/common');
+// const { interpolate } = require('@usebruno/common');
+
 const { each, forOwn, cloneDeep } = require('lodash');
 const { interpolateSecrets } = require('./secrets/interpolate-secrets');
+const { interpolate } = require('./secrets/dirty-interpolate');
 
 const getContentType = (headers = {}) => {
   let contentType = '';
@@ -52,17 +54,14 @@ const interpolateVars = (
       }
     };
     const secretsCallback = (match) => {
-      console.log('log inside interpolateSecrets', match);
-      const data = interpolateSecrets(match, secretsConfig, collectionPath);
-      console.log('is this being called?', data);
-      return 'random string';
+      return interpolateSecrets(match, secretsConfig, collectionPath);
     };
-    console.log('right before interpolate', str);
     return secretsConfig && collectionPath
       ? interpolate(str, combinedVars, secretsCallback)
       : interpolate(str, combinedVars);
   };
   request.url = _interpolate(request.url);
+  console.log('the result is this', request.url);
   forOwn(request.headers, (value, key) => {
     delete request.headers[key];
     request.headers[_interpolate(key)] = _interpolate(value);

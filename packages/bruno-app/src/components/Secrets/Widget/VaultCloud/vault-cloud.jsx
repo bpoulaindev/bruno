@@ -6,7 +6,9 @@ import { IconCaretDown, IconCaretRight, IconLoader, IconLoader2 } from '@tabler/
 import {
   saveSecretsInstance,
   getInstance,
-  renameSecretsInstance
+  renameSecretsInstance,
+  resetSecretsInstance,
+  getCredentials
 } from 'providers/ReduxStore/slices/collections/actions';
 import cloneDeep from 'lodash/cloneDeep';
 import toast from 'react-hot-toast';
@@ -212,6 +214,13 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection, sav
             onClick={() => getStoredSecrets()}
           >
             Get secrets
+          </button>
+          <button
+            type="button"
+            className="cursor-pointer ml-2 text-zinc-900 dark:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center transition-all rounded bg-transparent px-2.5 py-2 text-xs font-semibold shadow-sm ring-1 ring-inset ring-zinc-300 dark:ring-zinc-500"
+            onClick={() => dispatch(resetSecretsInstance(collection.pathname, config.sharedConfig.name))}
+          >
+            Reset
           </button>
         </div>
         {showError && (
