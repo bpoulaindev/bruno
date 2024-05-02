@@ -4,7 +4,8 @@ const extractSecrets = (match, secretsConfig, collectionPath) => {
   if (splitMatch.length !== 3) {
     return undefined;
   }
-  const secretProvider = secretsConfig.find((secret) => secret.provider === splitMatch[1]);
+  // find the secret provider : vault-cloud or vault-server
+  const secretProvider = secretsConfig.find((instance) => instance.name === splitMatch[1]);
   console.log('the secret provider is', secretProvider);
 };
 
