@@ -91,7 +91,6 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection, sav
         setTestResult(error);
       });
   };
-  console.log({ vaultConfig });
   const sectionClasses =
     'flex flex-col w-full shadow-[inset_0rem_0.2rem_0.4rem_0_rgb(0,0,0,0.1)] rounded-lg bg-zinc-50 dark:bg-transparent/10 p-4';
   const buttonDisabled = useMemo(() => {
@@ -99,7 +98,6 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection, sav
   }, [isLoading, vaultConfig.secretConfig?.clientID, vaultConfig.secretConfig?.clientSecret]);
 
   const saveSecrets = useCallback(() => {
-    console.log('triggering save function');
     // name has changed
     if (vaultConfig.sharedConfig.name !== config.sharedConfig.name) {
       dispatch(renameSecretsInstance(collection.pathname, config.sharedConfig.name, vaultConfig.sharedConfig.name))
@@ -116,6 +114,7 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection, sav
           orgID: vaultConfig.sharedConfig.orgID,
           projectID: vaultConfig.sharedConfig.projectID,
           path: vaultConfig.sharedConfig.path,
+          appName: vaultConfig.sharedConfig.appName,
           secretConfig: {
             clientID: vaultConfig.secretConfig?.clientID,
             clientSecret: vaultConfig.secretConfig?.clientSecret
@@ -134,7 +133,6 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection, sav
   const getStoredSecrets = () => {
     dispatch(getCredentials(collection.uid, vaultConfig.sharedConfig.name))
       .then((data) => {
-        console.log('getStoredSecrets', data);
         setVaultConfig({
           ...vaultConfig,
           secretConfig: {
@@ -271,6 +269,19 @@ export const VaultCloudWidget = ({ className, config, setConfig, collection, sav
                 sharedConfig: {
                   ...vaultConfig.sharedConfig,
                   projectID: value
+                }
+              })
+            }
+          />
+          <SecretField
+            className="grow"
+            name="App Name"
+            value={vaultConfig.sharedConfig?.appName ?? ''}
+            onChange={(value) =>
+              updateConfig({
+                sharedConfig: {
+                  ...vaultConfig.sharedConfig,
+                  appName: value
                 }
               })
             }

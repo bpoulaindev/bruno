@@ -38,7 +38,7 @@ const interpolateVars = (
     });
   });
 
-  const _interpolate = (str) => {
+  const _interpolate = async (str) => {
     if (!str || !str.length || typeof str !== 'string') {
       return str;
     }
@@ -56,7 +56,7 @@ const interpolateVars = (
     const secretsCallback = (match) => {
       return interpolateSecrets(match, secretsConfig, collectionPath);
     };
-    return secretsConfig && collectionPath
+    return secretsConfig && collectionPath && str.includes('$secret')
       ? interpolate(str, combinedVars, secretsCallback)
       : interpolate(str, combinedVars);
   };

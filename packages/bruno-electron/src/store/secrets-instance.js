@@ -20,7 +20,12 @@ class SecretsInstanceStore {
       if (key === 'name') {
         acc[key] = value;
       } else {
-        acc[key] = this.isValidValue(value) ? encryptString(value) : '';
+        // if value is undefined, cancel and don't replace it with an empty string
+        if (!value || value === 'undefined') {
+          return acc;
+        } else {
+          acc[key] = this.isValidValue(value) ? encryptString(value) : '';
+        }
       }
       return acc;
     }, {});
